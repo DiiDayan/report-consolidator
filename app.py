@@ -8,6 +8,7 @@ from pathlib import Path
 # Add src to path to import our modules
 sys.path.append(str(Path(__file__).parent / 'src'))
 from metrics_calculator import calculate_marketing_metrics, get_platform_summary, get_performance_insights
+from data_validator import validate_data, clean_data
 
 st.set_page_config(
     page_title="Marketing Performance Consolidator",
@@ -69,7 +70,30 @@ if uploaded_files:
                 file.seek(0)
             
             consolidated_df = pd.concat(dataframes, ignore_index=True)
+        
+            # Validate data
+            validation_report = validate_data(consolidated_df)
             
+            # Show validation status
+            if validation_report['has_issues']:
+                st.warning("⚠️ Data quality issues detected")
+                
+                with st.expander("View Data Quality Report", expanded=True):
+                    if validation_report['duplicate_rows'] > 0:
+                        st.error(f"🔴 {validation_report['duplicate_rows']} duplicate rows found")
+                    
+                    if validation_report['inconsistencies']:
+                        st.error("🔴 Data inconsistencies:")
+                        for issue in validation_report['inconsistencies']:
+                            st.write(f"  - {issue}")
+                    
+                    if st.button("Clean Data Automatically"):
+                        consolidated_df = clean_data(consolidated_df, remove_duplicates=True)
+                        st.success("✓ Data cleaned")
+                        st.rerun()
+            else:
+                st.success("✓ Data validation passed - No issues found")
+
             # Calculate marketing metrics
             consolidated_df = calculate_marketing_metrics(consolidated_df)
             
@@ -202,7 +226,7 @@ if uploaded_files:
 
 else:
     # Welcome screen
-    st.info("👈 Upload your campaign CSV files to get started")
+    st.info("👈 Upload your campaign CSV/Excel files to get started")
     
     with st.expander("ℹ️ How it works"):
         st.markdown("""
