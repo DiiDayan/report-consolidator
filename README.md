@@ -51,6 +51,7 @@ python3 src/consolidator.py
 # Results in output/
 ```
 
+**Supports both CSV and Excel (.xlsx) files.**
 ---
 
 ## What you get
@@ -94,7 +95,7 @@ LinkedIn        60000     904    756           42  1.51  0.84  18.00            
 
 ## Data format
 
-Your CSVs need these columns (tool auto-detects variations):
+Your CSVs or Excel files need these columns (tool auto-detects variations):
 
 **Required:**
 - `impressions` (or `views`)

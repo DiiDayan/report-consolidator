@@ -23,11 +23,11 @@ st.markdown("Upload your campaign data from Facebook, Google, LinkedIn, and othe
 with st.sidebar:
     st.header("📁 Upload Campaign Data")
     uploaded_files = st.file_uploader(
-        "Choose CSV files",
-        type=['csv'],
-        accept_multiple_files=True,
-        help="Upload campaign reports from different ad platforms"
-    )
+    "Choose CSV or Excel files",
+    type=['csv', 'xlsx'],
+    accept_multiple_files=True,
+    help="Upload campaign reports from different ad platforms"
+    )   
     
     st.markdown("---")
     st.markdown("### 📈 What you'll get:")
@@ -45,13 +45,18 @@ if uploaded_files:
     st.success(f"✓ {len(uploaded_files)} file(s) uploaded successfully")
     
     # Preview section
-    with st.expander("📄 Data Preview", expanded=False):
-        for file in uploaded_files:
-            st.subheader(f"📁 {file.name}")
-            df_preview = pd.read_csv(file)
-            st.dataframe(df_preview.head(), use_container_width=True)
-            st.caption(f"Shape: {df_preview.shape[0]} rows × {df_preview.shape[1]} columns")
-            file.seek(0)
+    with st.spinner("Consolidating and calculating KPIs..."):
+            # Read and consolidate
+            dataframes = []
+            for file in uploaded_files:
+                if file.name.endswith('.csv'):
+                    df = pd.read_csv(file)
+                else:  # .xlsx
+                    df = pd.read_excel(file, engine='openpyxl')
+                dataframes.append(df)
+                file.seek(0)
+            
+            consolidated_df = pd.concat(dataframes, ignore_index=True)
     
     # Consolidate button
     if st.button("🚀 Analyze Campaign Data", type="primary", use_container_width=True):
