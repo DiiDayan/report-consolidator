@@ -1,174 +1,200 @@
-# 📊 CSV Report Consolidator
+# 📊 Marketing Performance Consolidator
 
-Python automation tool that consolidates multiple CSV files into a single report, calculates key statistics, and generates automatic visualizations. Available as both a command-line tool and an interactive web interface.
+**Unified analytics for multi-platform ad campaigns**
 
-## ✨ Features
+Stop juggling spreadsheets from Facebook, Google, and LinkedIn. Consolidate your ad data, calculate essential KPIs automatically, and make informed budget decisions—all in one tool.
 
-- **Automatic consolidation**: Reads all CSV files from a folder and combines them into one
-- **Flexible column detection**: Works with any CSV structure - no fixed column names required
-- **Real-time statistics**: Calculates totals, averages, min, max, and more
-- **Data visualization**: Generates comparative charts automatically
-- **Two interfaces**: Use via command line or interactive web app
-- **Easy to use**: Execute a single command and get all results
+---
 
-## 🚀 Use Cases
+## ✨ Key Features
 
-- Consolidate monthly sales reports
-- Combine data from multiple sources
-- Generate executive reports quickly
-- Automate repetitive analysis
-- Interactive data exploration
+### **Automatic KPI Calculation**
+- **CTR** (Click-Through Rate) - Ad engagement metric
+- **CPC** (Cost Per Click) - Click efficiency
+- **CPM** (Cost Per Mille) - Impression cost
+- **CPA** (Cost Per Acquisition) - Conversion cost
+- **Conversion Rate** - Click-to-conversion efficiency
 
-## 📋 Requirements
+### **Cross-Platform Analysis**
+- Consolidate data from Facebook Ads, Google Ads, LinkedIn Ads, and more
+- Compare performance metrics across platforms
+- Identify best-performing channels instantly
 
-- Python 3.8 or higher
-- pandas
-- matplotlib
-- openpyxl
-- streamlit
+### **Actionable Insights**
+- Automatic detection of best/worst performers
+- Budget distribution analysis
+- Performance recommendations
 
-## 🔧 Installation
+### **Two Interfaces**
+- **Web App**: Drag-and-drop interface for non-technical users
+- **CLI**: Command-line tool for automation and scripting
 
-1. Clone this repository:
+---
+
+## 🎯 Who Is This For?
+
+- **Marketing Managers** running multi-platform campaigns
+- **Growth Marketers** optimizing ad spend
+- **Digital Marketing Freelancers** managing client campaigns
+- **Small Marketing Agencies** needing quick reporting
+
+---
+
+## 🚀 Quick Start
+
+### Web Interface (Recommended)
+
 ```bash
+# Clone and setup
 git clone https://github.com/DiiDayan/report-consolidator.git
 cd report-consolidator
-```
-
-2. Create a virtual environment:
-```bash
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
 
-## 💻 Usage
-
-### Option 1: Web Interface (Recommended)
-
-Launch the interactive Streamlit app:
-
-```bash
+# Launch web app
 streamlit run app.py
 ```
 
-This opens a web interface where you can:
-- 📁 Drag and drop CSV files
-- 👀 Preview data before consolidation
-- 📊 View interactive statistics and charts
-- ⬇️ Download consolidated reports
-- 🎨 Customize visualizations
+Open your browser, upload your CSV files, and get instant insights.
 
-### Option 2: Command Line
+### Command Line
 
-1. Place your CSV files in the `data/input/` folder
-
-2. Run the script:
 ```bash
+# Place CSV files in data/input/
 python3 src/consolidator.py
+
+# Find results in output/
+# - consolidated_report_with_metrics.csv
+# - marketing_performance.png
 ```
 
-3. Find the results in the `output/` folder:
-   - `consolidated_report.csv` - Consolidated data
-   - `data_visualization.png` - Visualization
+---
 
-## 📁 Project Structure
+## 📊 Example Output
 
+### Platform Performance Summary
 ```
-report-consolidator/
-├── app.py                   # Streamlit web interface
-├── src/
-│   └── consolidator.py      # Command-line script
-├── data/
-│   └── input/               # Place your CSVs here (CLI mode)
-├── output/                  # Generated results (CLI mode)
-├── requirements.txt         # Dependencies
-└── README.md
+Platform Performance:
+          impressions  clicks  spend  conversions   ctr   cpc    cpm    cpa  conversion_rate
+platform                                                                                    
+Facebook       254600    2546   1025           60  1.00  0.40   4.03  17.08             2.36
+Google         161600    4250   1605          111  2.63  0.38   9.93  14.46             2.61
+LinkedIn        60000     904    756           42  1.51  0.84  12.60  18.00             4.65
 ```
 
-## 📊 Sample Output
+### Key Insights (Auto-Generated)
+- ✓ Google has the highest CTR (2.63%)
+- ✓ Google has the lowest CPC ($0.38)
+- ✓ LinkedIn has the best conversion rate (4.65%)
+- ✓ Google has the lowest CPA ($14.46)
 
-The tool generates:
+### Visual KPI Comparison
+Interactive charts showing CTR, CPC, CPA, and conversion rate across all platforms.
 
-**Statistics:**
-```
-=== STATISTICS ===
+---
 
-SALES:
-  Total: 17,400.00
-  Average: 1,933.33
-  Min: 1,200.00
-  Max: 2,400.00
+## 📁 Data Format
 
-EXPENSES:
-  Total: 9,750.00
-  Average: 1,083.33
-  Min: 800.00
-  Max: 1,300.00
-```
+Your CSV files should include these columns (common variations are auto-detected):
 
-**Interactive charts** with customizable axes and download options
+**Essential:**
+- `impressions` (or `views`, `impress`)
+- `clicks`
+- `spend` (or `cost`, `amount`)
+- `conversions` (or `sales`, `conv`)
 
-## 🎯 Key Features
+**Recommended:**
+- `platform` (Facebook, Google, LinkedIn, etc.) - for cross-platform comparison
+- `campaign` - for campaign-level analysis
+- `date` - for time-series analysis
 
-### Flexible Column Detection
-- No hardcoded column names required
-- Automatically detects numeric and text columns
-- Works with any CSV structure
+**The tool automatically:**
+- Normalizes column names (handles variations)
+- Detects and groups by platform
+- Calculates all relevant KPIs
+- Generates insights
 
-### Comprehensive Statistics
-- Totals, averages, min, max, median, standard deviation
-- Automatic detection of numeric columns
-- Clear, formatted output
-
-### Interactive Visualizations
-- Choose which columns to visualize
-- Multiple chart types
-- High-resolution export (300 DPI)
+---
 
 ## 🛠️ Technologies
 
-- **Python 3.13** - Core language
-- **pandas** - Data manipulation
-- **matplotlib** - Visualization
-- **openpyxl** - Excel file reading
-- **streamlit** - Web interface
+- **Python 3.8+** - Core language
+- **Pandas** - Data manipulation and KPI calculation
+- **Matplotlib** - Visualization
+- **Streamlit** - Interactive web interface
+- **NumPy** - Numerical operations
 
-## 📸 Screenshots
+---
 
-### Web Interface
-- Clean, intuitive design
-- Real-time data preview
-- Interactive charts
-- One-click downloads
+## 📈 Use Case Example
 
-## License
+### The Problem
+You run a Winter Sale campaign across three platforms:
+- Facebook Ads → `facebook_ads_jan.csv`
+- Google Ads → `google_ads_jan.csv`
+- LinkedIn Ads → `linkedin_ads_jan.csv`
 
-MIT License
+Each platform gives you different CSV formats. You need to:
+- See total performance across all platforms
+- Compare which platform is most cost-effective
+- Decide where to allocate more budget
 
-## Author
+### The Solution
+1. Upload all three CSV files to the tool
+2. Get instant consolidated view with calculated KPIs
+3. See insights like "Google has lowest CPC but LinkedIn has best conversion rate"
+4. Make data-driven budget decisions
 
-Created as part of my data analysis and automation portfolio.
+**Time saved:** From hours of spreadsheet work to seconds.
 
-**Skills demonstrated:**
-- Python development
-- Data analysis and visualization
-- Web application development
-- Git workflow and version control
-- Clean code and documentation
-
-## Contributing
-
-Suggestions and improvements are welcome. Feel free to open an issue or submit a pull request.
+---
 
 ## Roadmap
 
-- [ ] Support for Excel (.xlsx) files
-- [ ] Custom column mapping interface
-- [ ] Export to multiple formats (PDF, Excel)
-- [ ] Scheduled automation
-- [ ] API integration
+Planned enhancements tracked in [GitHub Issues](https://github.com/DiiDayan/report-consolidator/issues):
+
+- [ ] Excel file support (.xlsx)
+- [ ] Advanced data validation and quality checks
+- [ ] Intelligent merge for related datasets
+- [ ] Additional chart types and visualizations
+- [ ] More platform integrations (TikTok, Twitter Ads)
+- [ ] Anomaly detection (performance spikes/drops)
+- [ ] Budget optimization suggestions
+
+---
+
+## Background
+
+This tool was built to solve a real problem: marketing teams waste hours consolidating data from different ad platforms and manually calculating KPIs in spreadsheets.
+
+By automating the consolidation and calculation process, marketers can focus on strategy and optimization rather than data wrangling.
+
+---
+
+## License
+
+MIT License - feel free to use and modify for your needs.
+
+---
+
+## 🤝 Contributing
+
+Found a bug? Have a feature request? Open an [issue](https://github.com/DiiDayan/report-consolidator/issues) or submit a pull request.
+
+---
+
+## Author
+
+Built with practical marketing analytics in mind.
+
+**Skills demonstrated:**
+- Python development
+- Data analysis and KPI calculation
+- Web application development (Streamlit)
+- Marketing domain knowledge
+- Clean code and documentation
+
+---
+
+**Ready to simplify your marketing analytics?** [Get started](#-quick-start) now.

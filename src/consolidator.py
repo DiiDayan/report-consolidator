@@ -1,11 +1,11 @@
 import pandas as pd
 import os
 from pathlib import Path
+from metrics_calculator import calculate_marketing_metrics, get_platform_summary, get_performance_insights
 
 def consolidate_reports(input_folder='data/input', output_folder='output'):
     """
     Reads all CSV files from a folder and consolidates them into a single file.
-    Works with any CSV structure.
     """
     # Get all CSV files
     csv_files = list(Path(input_folder).glob('*.csv'))
@@ -27,42 +27,50 @@ def consolidate_reports(input_folder='data/input', output_folder='output'):
     print(f"\nTotal rows consolidated: {len(consolidated_df)}")
     print(f"Columns in consolidated file: {list(consolidated_df.columns)}")
     
-    # Save consolidated file
-    output_file = Path(output_folder) / 'consolidated_report.csv'
+    # Calculate marketing metrics
+    print("\nCalculating marketing KPIs...")
+    consolidated_df = calculate_marketing_metrics(consolidated_df)
+    
+    # Save consolidated file with metrics
+    output_file = Path(output_folder) / 'consolidated_report_with_metrics.csv'
     consolidated_df.to_csv(output_file, index=False)
     print(f"File saved at: {output_file}")
     
     return consolidated_df
 
-def calculate_statistics(df, numeric_columns=None):
+def show_marketing_summary(df):
     """
-    Calculates basic statistics from the consolidated dataframe.
-    If numeric_columns not specified, auto-detects numeric columns.
+    Display marketing performance summary by platform.
     """
     if df is None or len(df) == 0:
         print("No data to analyze.")
         return
     
-    # Auto-detect numeric columns if not specified
-    if numeric_columns is None:
-        numeric_columns = df.select_dtypes(include=['number']).columns.tolist()
+    print("\n" + "="*60)
+    print("MARKETING PERFORMANCE SUMMARY")
+    print("="*60)
     
-    if len(numeric_columns) == 0:
-        print("No numeric columns found for statistics.")
-        return
+    # Get platform summary
+    summary = get_platform_summary(df)
     
-    print("\n=== STATISTICS ===")
-    for col in numeric_columns:
-        print(f"\n{col.upper()}:")
-        print(f"  Total: {df[col].sum():,.2f}")
-        print(f"  Average: {df[col].mean():,.2f}")
-        print(f"  Min: {df[col].min():,.2f}")
-        print(f"  Max: {df[col].max():,.2f}")
+    if summary is not None:
+        print("\nPlatform Performance:")
+        print(summary.to_string())
+        
+        # Get insights
+        insights = get_performance_insights(summary)
+        if insights:
+            print("\n" + "-"*60)
+            print("KEY INSIGHTS:")
+            print("-"*60)
+            for insight in insights:
+                print(insight)
+    else:
+        print("No platform data available for summary.")
 
-def create_chart(df, x_column=None, y_columns=None, output_folder='output'):
+def create_marketing_charts(df, output_folder='output'):
     """
-    Creates a chart with flexible column selection.
-    If columns not specified, tries to auto-detect.
+    Creates marketing-focused visualizations.
     """
     import matplotlib.pyplot as plt
     
@@ -70,54 +78,89 @@ def create_chart(df, x_column=None, y_columns=None, output_folder='output'):
         print("No data to visualize.")
         return
     
-    # Auto-detect columns if not specified
-    if x_column is None:
-        # Try to find a text/category column for X axis
-        text_cols = df.select_dtypes(include=['object']).columns.tolist()
-        if len(text_cols) > 0:
-            x_column = text_cols[0]
-        else:
-            print("No suitable column found for X axis.")
-            return
-    
-    if y_columns is None:
-        # Use all numeric columns for Y axis
-        y_columns = df.select_dtypes(include=['number']).columns.tolist()
-    
-    if len(y_columns) == 0:
-        print("No numeric columns found for chart.")
+    if 'platform' not in df.columns:
+        print("No platform column found for visualization.")
         return
     
-    # Create chart
-    plt.figure(figsize=(12, 6))
+    # Get aggregated data by platform
+    summary = get_platform_summary(df)
     
-    for col in y_columns:
-        plt.plot(df[x_column], df[col], marker='o', label=col.capitalize(), linewidth=2)
+    if summary is None:
+        return
     
-    plt.xlabel(x_column.capitalize())
-    plt.ylabel('Value')
-    plt.title(f'{x_column.capitalize()} Analysis')
-    plt.legend()
-    plt.xticks(rotation=45)
+    # Determine which metrics we can visualize
+    kpi_cols = ['ctr', 'cpc', 'cpm', 'cpa', 'conversion_rate']
+    available_kpis = [col for col in kpi_cols if col in summary.columns]
+    
+    if len(available_kpis) == 0:
+        print("No KPIs available for visualization.")
+        return
+    
+    # Create subplots based on available KPIs
+    n_plots = len(available_kpis)
+    n_cols = 2
+    n_rows = (n_plots + 1) // 2
+    
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(14, 5 * n_rows))
+    fig.suptitle('Marketing KPIs by Platform', fontsize=16, fontweight='bold')
+    
+    # Flatten axes for easy iteration
+    if n_rows == 1:
+        axes = [axes] if n_cols == 1 else axes
+    else:
+        axes = axes.flatten()
+    
+    colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6']
+    
+    for idx, kpi in enumerate(available_kpis):
+        ax = axes[idx]
+        summary[kpi].plot(kind='bar', ax=ax, color=colors[:len(summary)])
+        
+        # Format title
+        kpi_title = kpi.upper().replace('_', ' ')
+        ax.set_title(kpi_title, fontsize=12, fontweight='bold')
+        ax.set_ylabel(kpi_title)
+        ax.grid(True, alpha=0.3, axis='y')
+        ax.tick_params(axis='x', rotation=45)
+        
+        # Add value labels on bars
+        for container in ax.containers:
+            ax.bar_label(container, fmt='%.2f')
+    
+    # Hide extra subplots
+    for idx in range(len(available_kpis), len(axes)):
+        axes[idx].set_visible(False)
+    
     plt.tight_layout()
-    plt.grid(True, alpha=0.3)
     
     # Save chart
-    chart_file = Path(output_folder) / 'data_visualization.png'
+    chart_file = Path(output_folder) / 'marketing_performance.png'
     plt.savefig(chart_file, dpi=300, bbox_inches='tight')
     print(f"\nChart saved at: {chart_file}")
+    plt.close()
 
 if __name__ == "__main__":
-    # Consolidate reports
+    # Consolidate reports and calculate metrics
     df = consolidate_reports()
     
     if df is not None:
-        # Calculate statistics (auto-detects numeric columns)
-        calculate_statistics(df)
+        # Show marketing summary
+        show_marketing_summary(df)
         
-        # Create visualization (auto-detects suitable columns)
-        create_chart(df)
+        # Create visualizations
+        create_marketing_charts(df)
         
-        print("\n✓ Consolidation completed!")
-        print("\nPreview of consolidated data:")
-        print(df.head(10))
+        print("\n✓ Marketing analysis completed!")
+        
+        # Show campaign-level summary if multiple campaigns exist
+        if 'campaign' in df.columns:
+            print("\nPerformance by Campaign:")
+            campaign_summary = df.groupby('campaign')[['impressions', 'clicks', 'spend', 'conversions']].sum()
+            
+            # Recalculate KPIs for campaigns
+            campaign_summary['ctr'] = (campaign_summary['clicks'] / campaign_summary['impressions'] * 100).round(2)
+            campaign_summary['cpc'] = (campaign_summary['spend'] / campaign_summary['clicks']).round(2)
+            campaign_summary['cpa'] = (campaign_summary['spend'] / campaign_summary['conversions']).round(2)
+            campaign_summary['conversion_rate'] = (campaign_summary['conversions'] / campaign_summary['clicks'] * 100).round(2)
+            
+            print(campaign_summary.to_string())
