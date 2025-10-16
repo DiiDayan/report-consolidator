@@ -2,50 +2,61 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from io import BytesIO
+import sys
+from pathlib import Path
+
+# Add src to path to import our modules
+sys.path.append(str(Path(__file__).parent / 'src'))
+from metrics_calculator import calculate_marketing_metrics, get_platform_summary, get_performance_insights
 
 st.set_page_config(
-    page_title="CSV Report Consolidator",
+    page_title="Marketing Performance Consolidator",
     page_icon="📊",
     layout="wide"
 )
 
-st.title("📊 CSV Report Consolidator")
-st.markdown("Upload multiple CSV files to consolidate, analyze, and visualize your data.")
+st.title("📊 Marketing Performance Consolidator")
+st.markdown("**Unified analytics for multi-platform ad campaigns**")
+st.markdown("Upload your campaign data from Facebook, Google, LinkedIn, and other platforms to get instant KPI analysis.")
 
-# Sidebar for file upload
+# Sidebar
 with st.sidebar:
-    st.header("Upload Files")
+    st.header("📁 Upload Campaign Data")
     uploaded_files = st.file_uploader(
         "Choose CSV files",
         type=['csv'],
-        accept_multiple_files=True
+        accept_multiple_files=True,
+        help="Upload campaign reports from different ad platforms"
     )
     
     st.markdown("---")
-    st.markdown("### How to use:")
-    st.markdown("1. Upload one or more CSV files")
-    st.markdown("2. Review the data preview")
-    st.markdown("3. Click 'Consolidate' to combine files")
-    st.markdown("4. View statistics and charts")
-    st.markdown("5. Download consolidated report")
+    st.markdown("### 📈 What you'll get:")
+    st.markdown("✓ Automatic KPI calculation (CTR, CPC, CPA)")
+    st.markdown("✓ Cross-platform comparison")
+    st.markdown("✓ Actionable insights")
+    st.markdown("✓ Downloadable reports")
+    
+    st.markdown("---")
+    st.markdown("### 🎯 Supported metrics:")
+    st.caption("Impressions • Clicks • Spend • Conversions")
 
 # Main content
 if uploaded_files:
-    st.success(f"✓ {len(uploaded_files)} file(s) uploaded")
+    st.success(f"✓ {len(uploaded_files)} file(s) uploaded successfully")
     
     # Preview section
-    with st.expander("📄 Preview uploaded files", expanded=True):
+    with st.expander("📄 Data Preview", expanded=False):
         for file in uploaded_files:
             st.subheader(f"📁 {file.name}")
             df_preview = pd.read_csv(file)
             st.dataframe(df_preview.head(), use_container_width=True)
             st.caption(f"Shape: {df_preview.shape[0]} rows × {df_preview.shape[1]} columns")
-            file.seek(0)  # Reset file pointer
+            file.seek(0)
     
     # Consolidate button
-    if st.button("🔄 Consolidate Data", type="primary"):
-        with st.spinner("Consolidating files..."):
-            # Read and consolidate all files
+    if st.button("🚀 Analyze Campaign Data", type="primary", use_container_width=True):
+        with st.spinner("Consolidating and calculating KPIs..."):
+            # Read and consolidate
             dataframes = []
             for file in uploaded_files:
                 df = pd.read_csv(file)
@@ -54,124 +65,185 @@ if uploaded_files:
             
             consolidated_df = pd.concat(dataframes, ignore_index=True)
             
+            # Calculate marketing metrics
+            consolidated_df = calculate_marketing_metrics(consolidated_df)
+            
             # Store in session state
             st.session_state['consolidated_df'] = consolidated_df
-            st.success("✓ Files consolidated successfully!")
+            st.success("✓ Analysis completed!")
     
-    # Display results if consolidated
+    # Display results
     if 'consolidated_df' in st.session_state:
         df = st.session_state['consolidated_df']
         
         st.markdown("---")
-        st.header("📊 Consolidated Data")
         
-        # Tabs for different views
-        tab1, tab2, tab3 = st.tabs(["📋 Data", "📈 Statistics", "📊 Visualizations"])
+        # Check if we have platform data
+        has_platform = 'platform' in df.columns
         
-        with tab1:
-            st.dataframe(df, use_container_width=True)
-            st.caption(f"Total rows: {len(df)} | Columns: {', '.join(df.columns)}")
+        if has_platform:
+            # Platform Performance Section
+            st.header("🎯 Platform Performance")
             
-            # Download button
+            summary = get_platform_summary(df)
+            
+            if summary is not None:
+                # Display summary table
+                st.dataframe(summary.style.format("{:.2f}"), use_container_width=True)
+                
+                # Key Insights
+                insights = get_performance_insights(summary)
+                if insights:
+                    st.markdown("### 💡 Key Insights")
+                    for insight in insights:
+                        if "✓" in insight:
+                            st.success(insight)
+                        else:
+                            st.info(insight)
+                
+                # Visualizations
+                st.markdown("### 📊 KPI Comparison")
+                
+                kpi_cols = ['ctr', 'cpc', 'cpm', 'cpa', 'conversion_rate']
+                available_kpis = [col for col in kpi_cols if col in summary.columns]
+                
+                if available_kpis:
+                    # Let user select which KPIs to visualize
+                    selected_kpis = st.multiselect(
+                        "Select KPIs to visualize",
+                        available_kpis,
+                        default=available_kpis[:3]
+                    )
+                    
+                    if selected_kpis:
+                        n_plots = len(selected_kpis)
+                        cols = st.columns(min(n_plots, 2))
+                        
+                        colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6']
+                        
+                        for idx, kpi in enumerate(selected_kpis):
+                            with cols[idx % 2]:
+                                fig, ax = plt.subplots(figsize=(6, 4))
+                                summary[kpi].plot(kind='bar', ax=ax, color=colors[:len(summary)])
+                                
+                                kpi_title = kpi.upper().replace('_', ' ')
+                                ax.set_title(kpi_title, fontsize=12, fontweight='bold')
+                                ax.set_ylabel(kpi_title)
+                                ax.grid(True, alpha=0.3, axis='y')
+                                ax.tick_params(axis='x', rotation=45)
+                                
+                                # Add value labels
+                                for container in ax.containers:
+                                    ax.bar_label(container, fmt='%.2f')
+                                
+                                plt.tight_layout()
+                                st.pyplot(fig)
+                                plt.close()
+        
+        # Campaign Performance (if available)
+        if 'campaign' in df.columns:
+            st.markdown("---")
+            st.header("🎬 Campaign Performance")
+            
+            campaign_cols = ['impressions', 'clicks', 'spend', 'conversions']
+            campaign_cols = [col for col in campaign_cols if col in df.columns]
+            
+            if campaign_cols:
+                campaign_summary = df.groupby('campaign')[campaign_cols].sum()
+                
+                # Calculate KPIs
+                if 'clicks' in campaign_summary.columns and 'impressions' in campaign_summary.columns:
+                    campaign_summary['ctr'] = (campaign_summary['clicks'] / campaign_summary['impressions'] * 100).round(2)
+                
+                if 'spend' in campaign_summary.columns and 'clicks' in campaign_summary.columns:
+                    campaign_summary['cpc'] = (campaign_summary['spend'] / campaign_summary['clicks']).round(2)
+                
+                if 'spend' in campaign_summary.columns and 'conversions' in campaign_summary.columns:
+                    campaign_summary['cpa'] = (campaign_summary['spend'] / campaign_summary['conversions']).round(2)
+                
+                if 'conversions' in campaign_summary.columns and 'clicks' in campaign_summary.columns:
+                    campaign_summary['conversion_rate'] = (campaign_summary['conversions'] / campaign_summary['clicks'] * 100).round(2)
+                
+                st.dataframe(campaign_summary.style.format("{:.2f}"), use_container_width=True)
+        
+        # Download Section
+        st.markdown("---")
+        st.header("⬇️ Download Reports")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Download consolidated data with metrics
             csv = df.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="⬇️ Download Consolidated CSV",
+                label="📥 Download Full Report (CSV)",
                 data=csv,
-                file_name="consolidated_report.csv",
+                file_name="marketing_report_with_kpis.csv",
                 mime="text/csv",
+                use_container_width=True
             )
         
-        with tab2:
-            st.subheader("Statistical Summary")
-            
-            # Numeric columns statistics
-            numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
-            
-            if len(numeric_cols) > 0:
-                col1, col2 = st.columns(2)
-                
-                for idx, col in enumerate(numeric_cols):
-                    with col1 if idx % 2 == 0 else col2:
-                        st.metric(
-                            label=f"{col.upper()} - Total",
-                            value=f"${df[col].sum():,.2f}"
-                        )
-                        st.metric(
-                            label=f"{col.upper()} - Average",
-                            value=f"${df[col].mean():,.2f}"
-                        )
-                        with st.expander(f"More details for {col}"):
-                            st.write(f"**Min:** ${df[col].min():,.2f}")
-                            st.write(f"**Max:** ${df[col].max():,.2f}")
-                            st.write(f"**Median:** ${df[col].median():,.2f}")
-                            st.write(f"**Std Dev:** ${df[col].std():,.2f}")
-            else:
-                st.info("No numeric columns found for statistical analysis.")
-        
-        with tab3:
-            st.subheader("Data Visualizations")
-            
-            # Auto-detect columns for visualization
-            text_cols = df.select_dtypes(include=['object']).columns.tolist()
-            numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
-            
-            if len(text_cols) > 0 and len(numeric_cols) > 0:
-                # Column selection
-                col1, col2 = st.columns(2)
-                with col1:
-                    x_col = st.selectbox("X-axis (Category)", text_cols, index=0)
-                with col2:
-                    y_cols = st.multiselect("Y-axis (Values)", numeric_cols, default=numeric_cols)
-                
-                if y_cols:
-                    # Create chart
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    
-                    for col in y_cols:
-                        ax.plot(df[x_col], df[col], marker='o', label=col.capitalize(), linewidth=2)
-                    
-                    ax.set_xlabel(x_col.capitalize())
-                    ax.set_ylabel('Value')
-                    ax.set_title(f'{x_col.capitalize()} Analysis')
-                    ax.legend()
-                    ax.grid(True, alpha=0.3)
-                    plt.xticks(rotation=45)
-                    plt.tight_layout()
-                    
-                    st.pyplot(fig)
-                    
-                    # Download chart
-                    buf = BytesIO()
-                    fig.savefig(buf, format='png', dpi=300, bbox_inches='tight')
-                    buf.seek(0)
-                    st.download_button(
-                        label="⬇️ Download Chart",
-                        data=buf,
-                        file_name="data_visualization.png",
-                        mime="image/png"
-                    )
-            else:
-                st.info("Need both text and numeric columns for visualization.")
+        with col2:
+            # Download platform summary
+            if has_platform and summary is not None:
+                summary_csv = summary.to_csv().encode('utf-8')
+                st.download_button(
+                    label="📊 Download Platform Summary (CSV)",
+                    data=summary_csv,
+                    file_name="platform_summary.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
 
 else:
-    st.info("👈 Upload CSV files using the sidebar to get started")
+    # Welcome screen
+    st.info("👈 Upload your campaign CSV files to get started")
     
-    # Example/demo section
-    with st.expander("ℹ️ What can this tool do?"):
+    with st.expander("ℹ️ How it works"):
         st.markdown("""
-        **This tool helps you:**
-        - 📁 Consolidate multiple CSV files into one
-        - 📊 Automatically analyze numeric data
-        - 📈 Generate visualizations
-        - ⬇️ Download consolidated reports
+        ### What this tool does:
         
-        **Perfect for:**
-        - Monthly sales reports
-        - Multi-source data combination
-        - Quick data analysis
-        - Executive reporting
+        1. **Upload** campaign data from multiple platforms (Facebook Ads, Google Ads, LinkedIn Ads, etc.)
+        2. **Consolidate** all data into a single view
+        3. **Calculate** essential marketing KPIs automatically:
+           - **CTR** (Click-Through Rate): How engaging are your ads?
+           - **CPC** (Cost Per Click): How much are you paying per click?
+           - **CPM** (Cost Per Mille): Cost per 1,000 impressions
+           - **CPA** (Cost Per Acquisition): How much does each conversion cost?
+           - **Conversion Rate**: What % of clicks convert?
+        4. **Compare** performance across platforms
+        5. **Download** reports with all calculated metrics
+        
+        ### Example use case:
+        
+        You're running a campaign on Facebook, Google, and LinkedIn. Each platform gives you a CSV export.
+        Upload all three files here, and instantly see:
+        - Which platform has the best CTR
+        - Where your CPC is lowest
+        - Which platform delivers the best conversion rate
+        - How your budget is distributed
+        
+        **No more spreadsheet juggling. Just insights.**
+        """)
+    
+    with st.expander("📋 Required data format"):
+        st.markdown("""
+        Your CSV files should include some combination of these columns:
+        
+        **Essential:**
+        - `impressions` (or `views`)
+        - `clicks`
+        - `spend` (or `cost`)
+        - `conversions` (or `sales`)
+        
+        **Optional but recommended:**
+        - `platform` (Facebook, Google, LinkedIn, etc.)
+        - `campaign` (campaign name)
+        - `date`
+        
+        The tool automatically detects and normalizes column names, so slight variations are OK.
         """)
 
 # Footer
 st.markdown("---")
-st.caption("Created with Python, Pandas, Matplotlib, and Streamlit")
+st.caption("Built with Python • Pandas • Streamlit | Focused on practical marketing analytics")
