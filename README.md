@@ -94,6 +94,25 @@ Interactive charts showing CTR, CPC, CPA, and conversion rate across all platfor
 
 ---
 
+## 📸 Screenshots
+
+### Welcome Screen
+![Welcome Screen](docs/screenshots/1_welcome.png)
+
+### Platform Performance Analysis
+![Platform Performance](docs/screenshots/2_platform_performance.png)
+
+### KPI Visualizations
+![KPI Charts](docs/screenshots/3_kpi_charts.png)
+
+### Campaign Performance
+![Campaign Summary](docs/screenshots/4_campaign_summary.png)
+
+### Export Options
+![Download Reports](docs/screenshots/5_download.png)
+
+---
+
 ## 📁 Data Format
 
 Your CSV files should include these columns (common variations are auto-detected):
