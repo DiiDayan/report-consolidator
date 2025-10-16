@@ -2,23 +2,28 @@ import pandas as pd
 import os
 from pathlib import Path
 from metrics_calculator import calculate_marketing_metrics, get_platform_summary, get_performance_insights
-
 def consolidate_reports(input_folder='data/input', output_folder='output'):
     """
-    Reads all CSV files from a folder and consolidates them into a single file.
+    Reads all CSV and Excel files from a folder and consolidates them into a single file.
     """
-    # Get all CSV files
+    # Get all CSV and Excel files
     csv_files = list(Path(input_folder).glob('*.csv'))
-    print(f"Files found: {len(csv_files)}")
+    xlsx_files = list(Path(input_folder).glob('*.xlsx'))
+    all_files = csv_files + xlsx_files
     
-    if len(csv_files) == 0:
-        print("No CSV files found in the input folder.")
+    print(f"Files found: {len(all_files)} ({len(csv_files)} CSV, {len(xlsx_files)} Excel)")
+    
+    if len(all_files) == 0:
+        print("No CSV or Excel files found in the input folder.")
         return None
     
     # Read all files and store them in a list
     dataframes = []
-    for file in csv_files:
-        df = pd.read_csv(file)
+    for file in all_files:
+        if file.suffix == '.csv':
+            df = pd.read_csv(file)
+        else:  # .xlsx
+            df = pd.read_excel(file, engine='openpyxl')
         print(f"Reading: {file.name} - Columns: {list(df.columns)}")
         dataframes.append(df)
     
