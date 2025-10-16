@@ -1,100 +1,112 @@
-# 📊 Consolidador de Reportes CSV
+# 📊 CSV Report Consolidator
 
-Herramienta de automatización en Python que consolida múltiples archivos CSV en un único reporte, calcula estadísticas clave y genera visualizaciones automáticas.
+Python automation tool that consolidates multiple CSV files into a single report, calculates key statistics, and generates automatic visualizations.
 
-## ✨ Características
+## ✨ Features
 
-- **Consolidación automática**: Lee todos los archivos CSV de una carpeta y los combina en uno solo
-- **Estadísticas en tiempo real**: Calcula totales, promedios y métricas clave
-- **Visualización de datos**: Genera gráficos comparativos automáticamente
-- **Fácil de usar**: Ejecuta un solo comando y obtén todos los resultados
+- **Automatic consolidation**: Reads all CSV files from a folder and combines them into one
+- **Real-time statistics**: Calculates totals, averages, and key metrics
+- **Data visualization**: Generates comparative charts automatically
+- **Easy to use**: Execute a single command and get all results
 
-## 🚀 Casos de uso
+## 🚀 Use Cases
 
-- Consolidar reportes mensuales de ventas
-- Combinar datos de múltiples fuentes
-- Generar reportes ejecutivos rápidamente
-- Automatizar análisis repetitivos
+- Consolidate monthly sales reports
+- Combine data from multiple sources
+- Generate executive reports quickly
+- Automate repetitive analysis
 
-## 📋 Requisitos
+## 📋 Requirements
 
-- Python 3.8 o superior
+- Python 3.8 or higher
 - pandas
 - matplotlib
 - openpyxl
 
-## 🔧 Instalación
+## 🔧 Installation
 
-1. Clona este repositorio:
+1. Clone this repository:
 ```bash
-git clone https://github.com/TU-USUARIO/report-consolidator.git
+git clone https://github.com/DiiDayan/report-consolidator.git
 cd report-consolidator
 ```
 
-2. Crea un entorno virtual:
+2. Create a virtual environment:
 ```bash
 python3 -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. Instala las dependencias:
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## 💻 Uso
+## 💻 Usage
 
-1. Coloca tus archivos CSV en la carpeta `data/input/`
+1. Place your CSV files in the `data/input/` folder
 
-2. Ejecuta el script:
+2. Run the script:
 ```bash
 python3 src/consolidator.py
 ```
 
-3. Encuentra los resultados en la carpeta `output/`:
-   - `reporte_consolidado.csv` - Datos consolidados
-   - `grafico_ventas_gastos.png` - Visualización
+3. Find the results in the `output/` folder:
+   - `consolidated_report.csv` - Consolidated data
+   - `sales_expenses_chart.png` - Visualization
 
-## 📁 Estructura del proyecto
+## 📁 Project Structure
+
 ```
 report-consolidator/
 ├── src/
-│   └── consolidator.py      # Script principal
+│   └── consolidator.py      # Main script
 ├── data/
-│   └── input/               # Coloca aquí tus CSVs
-├── output/                  # Resultados generados
-├── examples/                # Archivos de ejemplo
-├── requirements.txt         # Dependencias
+│   └── input/               # Place your CSVs here
+├── output/                  # Generated results
+├── examples/                # Sample files
+├── requirements.txt         # Dependencies
 └── README.md
 ```
 
-## 📊 Ejemplo de salida
+## 📊 Sample Output
 
-El script genera:
+The script generates:
 
-**Estadísticas:**
+**Statistics:**
 ```
-=== ESTADÍSTICAS ===
-Total ventas: $17,400
-Total gastos: $9,750
-Beneficio total: $7,650
-Promedio ventas: $1,933
-Promedio gastos: $1,083
+=== STATISTICS ===
+Total sales: $17,400
+Total expenses: $9,750
+Net profit: $7,650
+Average sales: $1,933
+Average expenses: $1,083
 ```
 
-**Gráfico comparativo** de ventas vs gastos por mes
+**Comparative chart** of sales vs expenses by month
 
-## 🛠️ Tecnologías
+## 🛠️ Technologies
 
 - Python 3.13
-- pandas - Manipulación de datos
-- matplotlib - Visualización
-- openpyxl - Lectura de archivos Excel
+- pandas - Data manipulation
+- matplotlib - Visualization
+- openpyxl - Excel file reading
 
-## 📝 Licencia
+## 🔄 Future Enhancements
+
+- Flexible column mapping for different CSV structures
+- Interactive web interface with Streamlit
+- Support for multiple data formats (Excel, JSON)
+- Custom visualization options
+
+## 📝 License
 
 MIT License
 
-## 👩‍💻 Autora
+## Author
 
-Creado como parte de mi portfolio de proyectos de análisis de datos y automatización.
+Created as part of my data analysis and automation portfolio.
+
+## 🤝 Contributing
+
+Suggestions and improvements are welcome. Feel free to open an issue or submit a pull request.

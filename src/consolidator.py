@@ -2,67 +2,68 @@ import pandas as pd
 import os
 from pathlib import Path
 
-def consolidar_reportes(carpeta_input='data/input', carpeta_output='output'):
+def consolidate_reports(input_folder='data/input', output_folder='output'):
     """
-    Lee todos los archivos CSV de una carpeta y los consolida en uno solo.
+    Reads all CSV files from a folder and consolidates them into a single file.
     """
-    # Obtener todos los archivos CSV
-    archivos_csv = list(Path(carpeta_input).glob('*.csv'))
-    print(f"Archivos encontrados: {len(archivos_csv)}")
+    # Get all CSV files
+    csv_files = list(Path(input_folder).glob('*.csv'))
+    print(f"Files found: {len(csv_files)}")
     
-    # Leer todos los archivos y guardarlos en una lista
+    # Read all files and store them in a list
     dataframes = []
-    for archivo in archivos_csv:
-        df = pd.read_csv(archivo)
-        print(f"Leyendo: {archivo.name}")
+    for file in csv_files:
+        df = pd.read_csv(file)
+        print(f"Reading: {file.name}")
         dataframes.append(df)
     
-    # Consolidar todos en uno solo
-    df_consolidado = pd.concat(dataframes, ignore_index=True)
-    print(f"\nTotal de filas consolidadas: {len(df_consolidado)}")
+    # Consolidate all into one
+    consolidated_df = pd.concat(dataframes, ignore_index=True)
+    print(f"\nTotal rows consolidated: {len(consolidated_df)}")
     
-    # Guardar el archivo consolidado
-    archivo_salida = Path(carpeta_output) / 'reporte_consolidado.csv'
-    df_consolidado.to_csv(archivo_salida, index=False)
-    print(f"Archivo guardado en: {archivo_salida}")
+    # Save consolidated file
+    output_file = Path(output_folder) / 'consolidated_report.csv'
+    consolidated_df.to_csv(output_file, index=False)
+    print(f"File saved at: {output_file}")
     
-    return df_consolidado
+    return consolidated_df
 
-def calcular_estadisticas(df):
+def calculate_statistics(df):
     """
-    Calcula estadísticas básicas del dataframe consolidado.
+    Calculates basic statistics from the consolidated dataframe.
     """
-    print("\n=== ESTADÍSTICAS ===")
-    print(f"Total ventas: ${df['ventas'].sum():,.0f}")
-    print(f"Total gastos: ${df['gastos'].sum():,.0f}")
-    print(f"Beneficio total: ${(df['ventas'] - df['gastos']).sum():,.0f}")
-    print(f"Promedio ventas: ${df['ventas'].mean():,.0f}")
-    print(f"Promedio gastos: ${df['gastos'].mean():,.0f}")
+    print("\n=== STATISTICS ===")
+    print(f"Total sales: ${df['sales'].sum():,.0f}")
+    print(f"Total expenses: ${df['expenses'].sum():,.0f}")
+    print(f"Net profit: ${(df['sales'] - df['expenses']).sum():,.0f}")
+    print(f"Average sales: ${df['sales'].mean():,.0f}")
+    print(f"Average expenses: ${df['expenses'].mean():,.0f}")
 
-def crear_grafico(df, carpeta_output ='output'):
-    '''Crea un gráfico comparando ventas vs gastos por mes.'''
+def create_chart(df, output_folder='output'):
+    """
+    Creates a chart comparing sales vs expenses by month.
+    """
     import matplotlib.pyplot as plt
-
-    plt.figure(figsize=(10,6))
-    plt.plot(df['mes'], df['ventas'], marker ='o', label='Ventas', linewidth = 2)
-    plt.plot(df['mes'], df['gastos'], marker = 's', label = 'Gastos', linewidth = 2)
-    plt.xlabel('Mes')
-    plt.ylabel('Cantidad (€)')
-    plt.title('Ventas vs Gastos por mes')
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(df['month'], df['sales'], marker='o', label='Sales', linewidth=2)
+    plt.plot(df['month'], df['expenses'], marker='s', label='Expenses', linewidth=2)
+    plt.xlabel('Month')
+    plt.ylabel('Amount ($)')
+    plt.title('Sales vs Expenses by Month')
     plt.legend()
-    plt.xticks(rotation = 45)
+    plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.grid(True, alpha = 0.3)
-
-    #Guardar archivo
-    archivo_grafico = Path(carpeta_output) / 'grafico_ventas_gastos'
-    plt.savefig(archivo_grafico, dpi = 30, bbox_inches = 'tight')
-    print(f"\nGráfico guardado en: {archivo_grafico}")
-
+    plt.grid(True, alpha=0.3)
+    
+    # Save chart
+    chart_file = Path(output_folder) / 'sales_expenses_chart.png'
+    plt.savefig(chart_file, dpi=300, bbox_inches='tight')
+    print(f"\nChart saved at: {chart_file}")
 
 if __name__ == "__main__":
-    df = consolidar_reportes()
-    calcular_estadisticas(df)
-    crear_grafico(df)
-    print("\n¡Consolidación completada!")
+    df = consolidate_reports()
+    calculate_statistics(df)
+    create_chart(df)
+    print("\n✓ Consolidation completed!")
     print(df)
