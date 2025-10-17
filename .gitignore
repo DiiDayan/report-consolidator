@@ -3,7 +3,7 @@ __pycache__/
 *.pyc
 .DS_Store
 output/*.csv
-output/*.pngdata/input/old_data/
+output/*.png
+data/input/old_data/
 output/
 src/multicampaign_data.py
-
