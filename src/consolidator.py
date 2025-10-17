@@ -1,9 +1,9 @@
 import pandas as pd
 import os
 from pathlib import Path
-from metrics_calculator import calculate_marketing_metrics, get_platform_summary, get_performance_insights
-from data_validator import validate_data, print_validation_report, clean_data
-from statistics_analyzer import analyze_platform_statistics, compare_platforms, export_statistics_report
+from src.metrics_calculator import calculate_marketing_metrics, get_platform_summary, get_performance_insights
+from src.data_validator import validate_data, print_validation_report, clean_data
+from src.statistics_analyzer import analyze_platform_statistics, compare_platforms, export_statistics_report
 
 def consolidate_reports(input_folder='data/input', output_folder='output'):
     """

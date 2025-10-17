@@ -8,7 +8,6 @@ and campaign-level statistical distributions
 import pandas as pd
 import numpy as np
 
-
 def analyze_platform_statistics(df):
     """
     Analyzes marketing performance at both aggregate and campaign levels.
