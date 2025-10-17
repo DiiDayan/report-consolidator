@@ -16,6 +16,22 @@ st.set_page_config(
     layout="wide"
 )
 
+# Custom CSS for better tab styling
+st.markdown("""
+<style>
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        padding-left: 20px;
+        padding-right: 20px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.title("📊 Marketing Performance Consolidator")
 st.markdown("Upload CSV/Excel files with marketing campaign data to consolidate and analyze performance.")
 
@@ -84,54 +100,179 @@ if uploaded_files:
         st.markdown("---")
         
         # Tabs for different views
-        tab1, tab2, tab3 = st.tabs(["📊 Statistics", "📋 Data Table", "📈 Visualizations"])
+        tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "📈 Detailed Statistics", "📋 Data Table", "🎨 Visualizations"])
         
         with tab1:
-            st.header("📊 Campaign Performance Statistics")
+            st.header("🎯 Platform Performance Summary")
             
-            # Capture the output from statistics_analyzer
-            old_stdout = sys.stdout
-            sys.stdout = StringIO()
+            # Check if we have platform data
+            if 'platform' in df.columns:
+                summary = get_platform_summary(df)
+                
+                if summary is not None:
+                    # Display summary table
+                    st.dataframe(summary.style.format("{:.2f}"), use_container_width=True)
+                    
+                    # Key Insights
+                    insights = get_performance_insights(summary)
+                    if insights:
+                        st.markdown("### 💡 Key Insights")
+                        col1, col2 = st.columns(2)
+                        
+                        for idx, insight in enumerate(insights):
+                            with col1 if idx % 2 == 0 else col2:
+                                if "✓" in insight:
+                                    st.success(insight)
+                                else:
+                                    st.info(insight)
             
-            # Call the statistics functions
-            analyze_platform_statistics(df)
-            
-            # Get the output
-            stats_output = sys.stdout.getvalue()
-            sys.stdout = old_stdout
-            
-            # Display in a code block for better formatting
-            st.text(stats_output)
-            
-            # Also show the comparison table
+            # Download buttons
             st.markdown("---")
+            st.subheader("📥 Downloads")
             
-            old_stdout = sys.stdout
-            sys.stdout = StringIO()
+            col1, col2 = st.columns(2)
             
-            compare_platforms(df)
+            with col1:
+                # CSV download
+                csv = df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="⬇️ Download Consolidated CSV",
+                    data=csv,
+                    file_name="consolidated_report_with_metrics.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
             
-            comparison_output = sys.stdout.getvalue()
-            sys.stdout = old_stdout
-            
-            st.text(comparison_output)
+            with col2:
+                # Statistics report download
+                old_stdout = sys.stdout
+                sys.stdout = StringIO()
+                
+                analyze_platform_statistics(df)
+                compare_platforms(df)
+                
+                report_content = sys.stdout.getvalue()
+                sys.stdout = old_stdout
+                
+                st.download_button(
+                    label="📄 Download Statistics Report",
+                    data=report_content,
+                    file_name="statistics_report.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
         
         with tab2:
+            st.header("📊 Campaign Performance Statistics")
+            st.markdown("Detailed statistical analysis showing both aggregate (volume-weighted) and campaign-level metrics.")
+            
+            # Show statistics for each platform
+            platforms = df['platform'].unique() if 'platform' in df.columns else []
+            
+            for platform in sorted(platforms):
+                platform_data = df[df['platform'] == platform]
+                
+                with st.expander(f"🎯 {platform.upper()} - Detailed Metrics", expanded=True):
+                    # Calculate metrics
+                    n_campaigns = len(platform_data['campaign'].unique())
+                    total_impressions = platform_data['impressions'].sum()
+                    total_clicks = platform_data['clicks'].sum()
+                    total_spend = platform_data['spend'].sum()
+                    total_conversions = platform_data['conversions'].sum()
+                    
+                    # Aggregate metrics
+                    agg_ctr = (total_clicks / total_impressions * 100) if total_impressions > 0 else 0
+                    agg_cpc = (total_spend / total_clicks) if total_clicks > 0 else 0
+                    agg_conv_rate = (total_conversions / total_clicks * 100) if total_clicks > 0 else 0
+                    agg_cpa = (total_spend / total_conversions) if total_conversions > 0 else 0
+                    
+                    # Display metrics in columns
+                    col1, col2, col3, col4 = st.columns(4)
+                    
+                    with col1:
+                        st.metric("Total Impressions", f"{total_impressions:,.0f}")
+                        st.metric("Aggregate CTR", f"{agg_ctr:.2f}%")
+                    
+                    with col2:
+                        st.metric("Total Clicks", f"{total_clicks:,.0f}")
+                        st.metric("Aggregate CPC", f"${agg_cpc:.2f}")
+                    
+                    with col3:
+                        st.metric("Total Spend", f"${total_spend:,.2f}")
+                        st.metric("Aggregate CPA", f"${agg_cpa:.2f}")
+                    
+                    with col4:
+                        st.metric("Total Conversions", f"{total_conversions:,.0f}")
+                        st.metric("Conversion Rate", f"{agg_conv_rate:.2f}%")
+                    
+                    # Campaign-level statistics if multiple campaigns
+                    if n_campaigns > 1:
+                        st.markdown("---")
+                        st.markdown("**📊 Campaign-Level Statistics**")
+                        
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            st.markdown("**CTR Distribution**")
+                            st.write(f"• Mean: {platform_data['ctr'].mean():.2f}%")
+                            st.write(f"• Median: {platform_data['ctr'].median():.2f}%")
+                            st.write(f"• Std Dev: {platform_data['ctr'].std():.2f}%")
+                            st.write(f"• Range: {platform_data['ctr'].min():.2f}% - {platform_data['ctr'].max():.2f}%")
+                            
+                            if platform_data['ctr'].std() > platform_data['ctr'].mean() * 0.5:
+                                st.warning("⚠️ High variability - review individual campaigns")
+                        
+                        with col2:
+                            st.markdown("**CPC Distribution**")
+                            st.write(f"• Mean: ${platform_data['cpc'].mean():.2f}")
+                            st.write(f"• Median: ${platform_data['cpc'].median():.2f}")
+                            st.write(f"• Std Dev: ${platform_data['cpc'].std():.2f}")
+                            st.write(f"• Range: ${platform_data['cpc'].min():.2f} - ${platform_data['cpc'].max():.2f}")
+                        
+                        st.markdown("---")
+                        st.markdown("**🏆 Best Performers**")
+                        
+                        col1, col2, col3 = st.columns(3)
+                        
+                        with col1:
+                            best_ctr_idx = platform_data['ctr'].idxmax()
+                            st.success(f"**Best CTR:** {platform_data.loc[best_ctr_idx, 'campaign']}")
+                            st.write(f"{platform_data.loc[best_ctr_idx, 'ctr']:.2f}%")
+                        
+                        with col2:
+                            best_cpc_idx = platform_data['cpc'].idxmin()
+                            st.success(f"**Lowest CPC:** {platform_data.loc[best_cpc_idx, 'campaign']}")
+                            st.write(f"${platform_data.loc[best_cpc_idx, 'cpc']:.2f}")
+                        
+                        with col3:
+                            if 'conversion_rate' in platform_data.columns:
+                                best_conv_idx = platform_data['conversion_rate'].idxmax()
+                                st.success(f"**Best Conv. Rate:** {platform_data.loc[best_conv_idx, 'campaign']}")
+                                st.write(f"{platform_data.loc[best_conv_idx, 'conversion_rate']:.2f}%")
+            
+            # Show comparison table
+            st.markdown("---")
+            st.subheader("🔄 Cross-Platform Comparison")
+            
+            summary = get_platform_summary(df)
+            if summary is not None:
+                st.dataframe(summary.style.format("{:.2f}"), use_container_width=True)
+                
+                # Budget allocation
+                st.markdown("**💰 Budget Allocation:**")
+                total_budget = df['spend'].sum()
+                for platform in sorted(platforms):
+                    platform_spend = df[df['platform'] == platform]['spend'].sum()
+                    percentage = (platform_spend / total_budget * 100)
+                    st.write(f"• {platform}: ${platform_spend:,.2f} ({percentage:.1f}%)")
+        
+        with tab3:
             st.subheader("📋 Consolidated Data")
             st.dataframe(df, use_container_width=True)
             st.caption(f"Total rows: {len(df)} | Columns: {', '.join(df.columns)}")
-            
-            # Download button
-            csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="⬇️ Download Consolidated CSV",
-                data=csv,
-                file_name="consolidated_report_with_metrics.csv",
-                mime="text/csv",
-            )
         
-        with tab3:
-            st.subheader("📈 Performance Visualizations")
+        with tab4:
+            st.subheader("🎨 Performance Visualizations")
             
             # Check if we have platform data
             if 'platform' in df.columns:
