@@ -6,3 +6,4 @@ output/*.csv
 output/*.pngdata/input/old_data/
 output/
 src/multicampaign_data.py
+
