@@ -2,6 +2,9 @@ import pandas as pd
 import os
 from pathlib import Path
 from metrics_calculator import calculate_marketing_metrics, get_platform_summary, get_performance_insights
+from data_validator import validate_data, print_validation_report, clean_data
+from statistics_analyzer import analyze_platform_statistics, compare_platforms, export_statistics_report
+
 def consolidate_reports(input_folder='data/input', output_folder='output'):
     """
     Reads all CSV and Excel files from a folder and consolidates them into a single file.
@@ -32,6 +35,17 @@ def consolidate_reports(input_folder='data/input', output_folder='output'):
     print(f"\nTotal rows consolidated: {len(consolidated_df)}")
     print(f"Columns in consolidated file: {list(consolidated_df.columns)}")
     
+    # Validate data quality
+    print("\nValidating data quality...")
+    validation_report = validate_data(consolidated_df)
+    print_validation_report(validation_report)
+    
+    # Clean data if issues found
+    if validation_report['has_issues']:
+        user_input = input("\nClean data automatically? (y/n): ")
+        if user_input.lower() == 'y':
+            consolidated_df = clean_data(consolidated_df, remove_duplicates=True, fill_missing=False)
+
     # Calculate marketing metrics
     print("\nCalculating marketing KPIs...")
     consolidated_df = calculate_marketing_metrics(consolidated_df)
@@ -150,7 +164,12 @@ if __name__ == "__main__":
     
     if df is not None:
         # Show marketing summary
-        show_marketing_summary(df)
+        #show_marketing_summary(df)
+        
+        # Detailed statistical analysis
+        analyze_platform_statistics(df)
+        compare_platforms(df)
+        export_statistics_report(df, 'output/statistics_report.txt')
         
         # Create visualizations
         create_marketing_charts(df)
@@ -168,4 +187,4 @@ if __name__ == "__main__":
             campaign_summary['cpa'] = (campaign_summary['spend'] / campaign_summary['conversions']).round(2)
             campaign_summary['conversion_rate'] = (campaign_summary['conversions'] / campaign_summary['clicks'] * 100).round(2)
             
-            print(campaign_summary.to_string())
+            print(campaign_summary.to_string())            
